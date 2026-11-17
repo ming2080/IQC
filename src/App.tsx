@@ -59,73 +59,19 @@ import {
   Cell,
   ComposedChart
 } from 'recharts';
-
-const PENDING_MATERIALS = [
-  { code: '8020080001', name: '车规级多层陶瓷电容器 22uF', qty: 10000, supplier: '村田电子', batch: '20261020', useTime: '20261020', inspector: '李明' },
-  { code: '8020080002', name: '车规级精密运算放大器', qty: 5000, supplier: '德州仪器', batch: '20261020', useTime: '20261020', inspector: '王芳' },
-  { code: '8020080003', name: '超低功耗蓝牙SoC芯片', qty: 3500, supplier: 'Nordic', batch: '20261019', useTime: '20261019', inspector: '张伟' },
-  { code: '8020080004', name: '高频贴片功率电感 4.7uH', qty: 15000, supplier: '顺络电子', batch: '20261019', useTime: '20261019', inspector: '刘洋' },
-  { code: '8020080005', name: '车规双向TVS二极管', qty: 20000, supplier: '君耀电子', batch: '20261018', useTime: '20261018', inspector: '陈静' },
-  { code: '8020080006', name: '高精度晶体振荡器 24MHz', qty: 8000, supplier: '泰艺电子', batch: '20261018', useTime: '20261018', inspector: '郭敏' },
-  { code: '8020080007', name: '汽车级CAN总线收发器', qty: 6000, supplier: '纳芯微', batch: '20261017', useTime: '20261017', inspector: '周浩' },
-  { code: '8020080008', name: '工业级SPI Flash存储器 128Mb', qty: 4000, supplier: '兆易创新', batch: '20261017', useTime: '20261017', inspector: '黄健' },
-];
-
-const INSPECTING_MATERIALS = [
-  { code: '8020080011', name: '功率MOSFET 60V 30A', qty: 5000, supplier: '英飞凌', batch: '20261020', useTime: '20261020', inspector: '王强' },
-  { code: '8020080012', name: '高精度厚膜片式电阻 10K', qty: 50000, supplier: '国巨电子', batch: '20261020', useTime: '20261020', inspector: '赵磊' },
-  { code: '8020080013', name: '车载电源管理IC 5V/2A', qty: 3000, supplier: '圣邦微', batch: '20261019', useTime: '20261019', inspector: '徐婷' },
-  { code: '8020080014', name: '贴片铝电解电容 100uF 35V', qty: 8000, supplier: '艾华集团', batch: '20261019', useTime: '20261019', inspector: '孙涛' },
-  { code: '8020080015', name: '高速光耦合器 10Mbit/s', qty: 4000, supplier: '光宝科技', batch: '20261018', useTime: '20261018', inspector: '林芳' },
-  { code: '8020080016', name: '肖特基势垒二极管 40V 5A', qty: 15000, supplier: '长电科技', batch: '20261018', useTime: '20261018', inspector: '杨浩' },
-  { code: '8020080017', name: '车规级EEPROM存储芯片', qty: 6000, supplier: '意法半导体', batch: '20261017', useTime: '20261017', inspector: '吴杰' },
-];
-
-const INSPECTION_RESULTS = [
-  { code: '8020080021', name: '高灵敏度霍尔传感器', qty: 5000, supplier: '群创光电', batch: '20261020', useTime: '20261020', conclusion: '合格' },
-  { code: '8020080022', name: '低压差线性稳压器 LDO 3.3V', qty: 8000, supplier: '德州仪器', batch: '20261020', useTime: '20261020', conclusion: '让步接收' },
-  { code: '8020080023', name: '快速恢复二极管 200V 2A', qty: 12000, supplier: '扬杰科技', batch: '20261019', useTime: '20261019', conclusion: '退货' },
-  { code: '8020080024', name: 'ESD静电保护二极管阵列', qty: 30000, supplier: '君耀电子', batch: '20261019', useTime: '20261019', conclusion: '合格' },
-  { code: '8020080025', name: '超低功耗双通道运算放大器', qty: 4500, supplier: '圣邦微', batch: '20261018', useTime: '20261018', conclusion: '合格' },
-  { code: '8020080026', name: '贴片功率电感 10uH', qty: 10000, supplier: '顺络电子', batch: '20261018', useTime: '20261018', conclusion: '让步接收' },
-  { code: '8020080027', name: '车规级贴片晶振 16MHz', qty: 6000, supplier: '泰艺电子', batch: '20261017', useTime: '20261017', conclusion: '退货' },
-];
-
-const PENDING_RANKING_DATA = [
-  { name: '电容物料组', count: 36 },
-  { name: '电阻物料组', count: 32 },
-  { name: '芯片IC组', count: 28 },
-  { name: '电感磁性器件组', count: 25 },
-  { name: '二极管/三极管组', count: 21 },
-  { name: '传感器组件组', count: 18 },
-  { name: '结构连接器组', count: 15 },
-  { name: '光电耦合器件组', count: 12 },
-  { name: '晶振时钟器件组', count: 9 },
-  { name: '继电器/开关组', count: 7 },
-];
-
-const INSPECTING_RANKING_DATA = [
-  { name: '芯片集成电路组', count: 29 },
-  { name: '车规电容物料组', count: 24 },
-  { name: '功率MOSFET组', count: 20 },
-  { name: '精密电阻物料组', count: 18 },
-  { name: 'TVS防静电管组', count: 15 },
-  { name: '高频电感物料组', count: 12 },
-  { name: '传感器与模块组', count: 10 },
-  { name: '时钟晶振器件组', count: 8 },
-  { name: '电源管理IC组', count: 6 },
-  { name: '光电传感器组', count: 4 },
-];
-
-const PROGRESS_DEFECTS = [
-  { name: '尺寸超差', value: 10.01, color: '#3b82f6' },
-  { name: '外观划伤', value: 20.21, color: '#06b6d4' },
-  { name: '性能异常', value: 30.20, color: '#10b981' },
-  { name: '标志错漏', value: 49.11, color: '#f59e0b' },
-  { name: '包装破损', value: 42.51, color: '#ec4899' },
-];
-
-const DEFECT_DISTRIBUTION = PROGRESS_DEFECTS;
+import type { InspectionConclusionFilter } from './types';
+import {
+  PENDING_MATERIALS,
+  INSPECTING_MATERIALS,
+  INSPECTION_RESULTS,
+  PENDING_RANKING_DATA,
+  INSPECTING_RANKING_DATA,
+  PROGRESS_DEFECTS,
+  DEFECT_DISTRIBUTION,
+  DASHBOARD_METRICS,
+  getInspectionConclusionSummary,
+  filterInspectionResultsByConclusion,
+} from './data/iqcDashboard';
 
 const INITIAL_DISPATCH_LIST = [
   { id: 1, code: '8020080001', name: '高灵敏度霍尔传感器', mlot: 'MLOT202610-1', lpn: 'LPN001', supplierCode: '100021', supplierAbbr: '群创光电', batch: '20261020', qty: 5000, orderNo: 'W01110015', goodsNo: '0001805901', spot: '是', paperless: '否', wms: '是', failReason: '', dispatcher: '陈静', inspector: '李明', status: '已派单', remark: '加急件' },
@@ -662,6 +608,9 @@ export default function App() {
   const [materialDispatchOpen, setMaterialDispatchOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [resultConclusionFilter, setResultConclusionFilter] = useState<InspectionConclusionFilter>('全部');
+  const resultConclusionSummary = getInspectionConclusionSummary(INSPECTION_RESULTS);
+  const filteredInspectionResults = filterInspectionResultsByConclusion(INSPECTION_RESULTS, resultConclusionFilter);
   const [selectedRow, setSelectedRow] = useState<any>(null);
   const [showNotificationModal, setShowNotificationModal] = useState(false);
   const [showAiModal, setShowAiModal] = useState(false);
@@ -4204,7 +4153,7 @@ export default function App() {
                     <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">待检批数</span>
                     <div className="p-2 bg-blue-50 text-blue-600 rounded-xl"><Clock className="w-5 h-5" /></div>
                   </div>
-                  <div className="text-3xl font-extrabold text-slate-800 tracking-tight">230</div>
+                  <div className="text-3xl font-extrabold text-slate-800 tracking-tight">{DASHBOARD_METRICS.pendingBatches}</div>
                   <div className="mt-2 flex items-center text-xs text-blue-600 font-medium">
                     <ArrowUpRight className="w-3.5 h-3.5 mr-1" /><span>实时 +8%</span>
                   </div>
@@ -4216,7 +4165,7 @@ export default function App() {
                     <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">检验中批数</span>
                     <div className="p-2 bg-cyan-50 text-cyan-600 rounded-xl"><PlayCircle className="w-5 h-5" /></div>
                   </div>
-                  <div className="text-3xl font-extrabold text-slate-800 tracking-tight">134</div>
+                  <div className="text-3xl font-extrabold text-slate-800 tracking-tight">{DASHBOARD_METRICS.inspectingBatches}</div>
                   <div className="mt-2 flex items-center text-xs text-cyan-600 font-medium">
                     <TrendingUp className="w-3.5 h-3.5 mr-1" /><span>产线送检高效</span>
                   </div>
@@ -4228,9 +4177,9 @@ export default function App() {
                     <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">合格批数</span>
                     <div className="p-2 bg-emerald-50 text-emerald-600 rounded-xl"><CheckCircle2 className="w-5 h-5" /></div>
                   </div>
-                  <div className="text-3xl font-extrabold text-slate-800 tracking-tight">298</div>
+                  <div className="text-3xl font-extrabold text-slate-800 tracking-tight">{DASHBOARD_METRICS.qualifiedBatches}</div>
                   <div className="mt-2 flex items-center text-xs text-emerald-600 font-medium">
-                    <Check className="w-3.5 h-3.5 mr-1" /><span>合格率 92.8%</span>
+                    <Check className="w-3.5 h-3.5 mr-1" /><span>合格率 {DASHBOARD_METRICS.passRate}</span>
                   </div>
                 </div>
 
@@ -4240,7 +4189,7 @@ export default function App() {
                     <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">让步批数</span>
                     <div className="p-2 bg-amber-50 text-amber-600 rounded-xl"><AlertCircle className="w-5 h-5" /></div>
                   </div>
-                  <div className="text-3xl font-extrabold text-slate-800 tracking-tight">13</div>
+                  <div className="text-3xl font-extrabold text-slate-800 tracking-tight">{DASHBOARD_METRICS.concessionBatches}</div>
                   <div className="mt-2 text-xs text-amber-600 font-medium">特采审批中</div>
                 </div>
 
@@ -4250,7 +4199,7 @@ export default function App() {
                     <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">退货批数</span>
                     <div className="p-2 bg-rose-50 text-rose-600 rounded-xl"><XCircle className="w-5 h-5" /></div>
                   </div>
-                  <div className="text-3xl font-extrabold text-slate-800 tracking-tight">10</div>
+                  <div className="text-3xl font-extrabold text-slate-800 tracking-tight">{DASHBOARD_METRICS.returnedBatches}</div>
                   <div className="mt-2 text-xs text-rose-600 font-medium">已通知供应商</div>
                 </div>
 
@@ -4260,7 +4209,7 @@ export default function App() {
                     <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">评审中批数</span>
                     <div className="p-2 bg-purple-50 text-purple-600 rounded-xl"><HelpCircle className="w-5 h-5" /></div>
                   </div>
-                  <div className="text-3xl font-extrabold text-slate-800 tracking-tight">-48</div>
+                  <div className="text-3xl font-extrabold text-slate-800 tracking-tight">{DASHBOARD_METRICS.reviewingBatches}</div>
                   <div className="mt-2 text-xs text-purple-600 font-medium">MRB多方会审</div>
                 </div>
               </div>
@@ -4435,6 +4384,21 @@ export default function App() {
                       <div className="w-2 h-5 bg-emerald-600 rounded-full"></div>
                       <h3 className="font-bold text-slate-800 text-sm">检验结果清单</h3>
                     </div>
+                    <div className="flex items-center space-x-1">
+                      {(['全部', '合格', '让步接收', '退货'] as const).map((option) => (
+                        <button
+                          key={option}
+                          onClick={() => setResultConclusionFilter(option)}
+                          className={`px-2 py-1 rounded-md text-[11px] font-bold transition ${
+                            resultConclusionFilter === option
+                              ? 'bg-emerald-600 text-white'
+                              : 'bg-slate-100 text-slate-500 hover:bg-slate-200'
+                          }`}
+                        >
+                          {option}（{option === '全部' ? INSPECTION_RESULTS.length : resultConclusionSummary[option]}）
+                        </button>
+                      ))}
+                    </div>
                   </div>
                   <div className="overflow-x-auto max-h-80 custom-scrollbar">
                     <table className="w-full text-left text-xs text-slate-600">
@@ -4447,7 +4411,7 @@ export default function App() {
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-100">
-                        {INSPECTION_RESULTS.map((item, idx) => (
+                        {filteredInspectionResults.map((item, idx) => (
                           <tr
                             key={idx}
                             onClick={() => setSelectedRow({ type: '检验结果', ...item })}
@@ -4477,6 +4441,13 @@ export default function App() {
                             </td>
                           </tr>
                         ))}
+                        {filteredInspectionResults.length === 0 && (
+                          <tr>
+                            <td colSpan={4} className="py-8 px-3 text-center text-slate-400">
+                              该结论下暂无检验结果
+                            </td>
+                          </tr>
+                        )}
                       </tbody>
                     </table>
                   </div>
