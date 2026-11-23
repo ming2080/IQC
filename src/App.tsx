@@ -71,7 +71,9 @@ import {
   DASHBOARD_METRICS,
   getInspectionConclusionSummary,
   filterInspectionResultsByConclusion,
+  filterDashboardMaterialsByKeyword,
 } from './data/iqcDashboard';
+import DashboardSearchBar from './components/DashboardSearchBar';
 
 const INITIAL_DISPATCH_LIST = [
   { id: 1, code: '8020080001', name: '高灵敏度霍尔传感器', mlot: 'MLOT202610-1', lpn: 'LPN001', supplierCode: '100021', supplierAbbr: '群创光电', batch: '20261020', qty: 5000, orderNo: 'W01110015', goodsNo: '0001805901', spot: '是', paperless: '否', wms: '是', failReason: '', dispatcher: '陈静', inspector: '李明', status: '已派单', remark: '加急件' },
@@ -610,7 +612,14 @@ export default function App() {
   const [searchTerm, setSearchTerm] = useState('');
   const [resultConclusionFilter, setResultConclusionFilter] = useState<InspectionConclusionFilter>('全部');
   const resultConclusionSummary = getInspectionConclusionSummary(INSPECTION_RESULTS);
-  const filteredInspectionResults = filterInspectionResultsByConclusion(INSPECTION_RESULTS, resultConclusionFilter);
+  const filteredPendingMaterials = filterDashboardMaterialsByKeyword(PENDING_MATERIALS, searchTerm);
+  const filteredInspectingMaterials = filterDashboardMaterialsByKeyword(INSPECTING_MATERIALS, searchTerm);
+  const filteredInspectionResults = filterDashboardMaterialsByKeyword(
+    filterInspectionResultsByConclusion(INSPECTION_RESULTS, resultConclusionFilter),
+    searchTerm,
+  );
+  // 物料组分析视图不套用结论筛选，仅按关键词过滤
+  const filteredAnalysisResults = filterDashboardMaterialsByKeyword(INSPECTION_RESULTS, searchTerm);
   const [selectedRow, setSelectedRow] = useState<any>(null);
   const [showNotificationModal, setShowNotificationModal] = useState(false);
   const [showAiModal, setShowAiModal] = useState(false);
@@ -4283,6 +4292,14 @@ export default function App() {
                 </div>
               </div>
 
+              {/* 清单关键词搜索：编码 / 名称 / 供应商 / 检验员 */}
+              <DashboardSearchBar
+                value={searchTerm}
+                onChange={setSearchTerm}
+                totalCount={PENDING_MATERIALS.length + INSPECTING_MATERIALS.length + INSPECTION_RESULTS.length}
+                matchedCount={filteredPendingMaterials.length + filteredInspectingMaterials.length + filteredInspectionResults.length}
+              />
+
               {/* 3 Material Lists Section with Modern Table Styling */}
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* 1. 待检物料清单 */}
@@ -4304,7 +4321,7 @@ export default function App() {
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-100">
-                        {PENDING_MATERIALS.map((item, idx) => (
+                        {filteredPendingMaterials.map((item, idx) => (
                           <tr
                             key={idx}
                             onClick={() => setSelectedRow({ type: '待检物料', ...item })}
@@ -4326,6 +4343,13 @@ export default function App() {
                             </td>
                           </tr>
                         ))}
+                        {filteredPendingMaterials.length === 0 && (
+                          <tr>
+                            <td colSpan={4} className="py-8 px-3 text-center text-slate-400">
+                              未找到匹配的待检物料
+                            </td>
+                          </tr>
+                        )}
                       </tbody>
                     </table>
                   </div>
@@ -4350,7 +4374,7 @@ export default function App() {
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-100">
-                        {INSPECTING_MATERIALS.map((item, idx) => (
+                        {filteredInspectingMaterials.map((item, idx) => (
                           <tr
                             key={idx}
                             onClick={() => setSelectedRow({ type: '检验中物料', ...item })}
@@ -4372,6 +4396,13 @@ export default function App() {
                             </td>
                           </tr>
                         ))}
+                        {filteredInspectingMaterials.length === 0 && (
+                          <tr>
+                            <td colSpan={4} className="py-8 px-3 text-center text-slate-400">
+                              未找到匹配的检验中物料
+                            </td>
+                          </tr>
+                        )}
                       </tbody>
                     </table>
                   </div>
@@ -4444,7 +4475,7 @@ export default function App() {
                         {filteredInspectionResults.length === 0 && (
                           <tr>
                             <td colSpan={4} className="py-8 px-3 text-center text-slate-400">
-                              该结论下暂无检验结果
+                              {searchTerm.trim() ? '未找到匹配的检验结果' : '该结论下暂无检验结果'}
                             </td>
                           </tr>
                         )}
@@ -4552,7 +4583,7 @@ export default function App() {
                     <span>待检物料清单</span>
                   </h3>
                   <div className="space-y-2.5 max-h-72 overflow-y-auto custom-scrollbar pr-1">
-                    {PENDING_MATERIALS.map((item, i) => (
+                    {filteredPendingMaterials.map((item, i) => (
                       <div key={i} className="p-3 bg-slate-950/80 hover:bg-slate-800/80 border border-slate-800/90 hover:border-blue-500/50 rounded-xl transition group">
                         <div className="flex items-center justify-between mb-1">
                           <span className="font-bold text-slate-200 text-xs group-hover:text-cyan-400 transition">{item.name}</span>
@@ -4569,6 +4600,9 @@ export default function App() {
                         </div>
                       </div>
                     ))}
+                    {filteredPendingMaterials.length === 0 && (
+                      <div className="py-8 text-center text-xs text-slate-500">未找到匹配的待检物料</div>
+                    )}
                   </div>
                 </div>
 
@@ -4578,7 +4612,7 @@ export default function App() {
                     <span>检验中物料清单</span>
                   </h3>
                   <div className="space-y-2.5 max-h-72 overflow-y-auto custom-scrollbar pr-1">
-                    {INSPECTING_MATERIALS.map((item, i) => (
+                    {filteredInspectingMaterials.map((item, i) => (
                       <div key={i} className="p-3 bg-slate-950/80 hover:bg-slate-800/80 border border-slate-800/90 hover:border-cyan-500/50 rounded-xl transition group">
                         <div className="flex items-center justify-between mb-1">
                           <span className="font-bold text-slate-200 text-xs group-hover:text-cyan-400 transition">{item.name}</span>
@@ -4595,6 +4629,9 @@ export default function App() {
                         </div>
                       </div>
                     ))}
+                    {filteredInspectingMaterials.length === 0 && (
+                      <div className="py-8 text-center text-xs text-slate-500">未找到匹配的检验中物料</div>
+                    )}
                   </div>
                 </div>
 
@@ -4604,7 +4641,7 @@ export default function App() {
                     <span>检验结果清单</span>
                   </h3>
                   <div className="space-y-2.5 max-h-72 overflow-y-auto custom-scrollbar pr-1">
-                    {INSPECTION_RESULTS.map((item, i) => (
+                    {filteredAnalysisResults.map((item, i) => (
                       <div key={i} className="p-3 bg-slate-950/80 hover:bg-slate-800/80 border border-slate-800/90 hover:border-emerald-500/50 rounded-xl transition group">
                         <div className="flex items-center justify-between mb-1">
                           <span className="font-bold text-slate-200 text-xs group-hover:text-emerald-400 transition">{item.name}</span>
@@ -4623,6 +4660,9 @@ export default function App() {
                         </div>
                       </div>
                     ))}
+                    {filteredAnalysisResults.length === 0 && (
+                      <div className="py-8 text-center text-xs text-slate-500">未找到匹配的检验结果</div>
+                    )}
                   </div>
                 </div>
               </div>

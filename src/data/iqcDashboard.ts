@@ -1,5 +1,6 @@
 import type {
   DashboardMaterial,
+  DashboardMaterialBase,
   InspectionResult,
   RankingItem,
   DefectItem,
@@ -111,4 +112,23 @@ export function filterInspectionResultsByConclusion(
 ): InspectionResult[] {
   if (filter === '全部') return results;
   return results.filter((item) => item.conclusion === filter);
+}
+
+/**
+ * 按关键词筛选看板物料行：匹配物料编码、物料名称、供应商，
+ * 带检验员字段的行同时匹配检验员。关键词为空或全空白时返回原列表。
+ */
+export function filterDashboardMaterialsByKeyword<T extends DashboardMaterialBase>(
+  items: T[],
+  keyword: string,
+): T[] {
+  const term = keyword.trim().toLowerCase();
+  if (!term) return items;
+  return items.filter((item) => {
+    const inspector = 'inspector' in item ? String((item as DashboardMaterial).inspector) : '';
+    return [item.code, item.name, item.supplier, inspector]
+      .join(' ')
+      .toLowerCase()
+      .includes(term);
+  });
 }
