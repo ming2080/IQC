@@ -59,7 +59,7 @@ import {
   Cell,
   ComposedChart
 } from 'recharts';
-import type { InspectionConclusionFilter } from './types';
+import type { InspectionConclusionFilter, DashboardMaterialSort } from './types';
 import {
   PENDING_MATERIALS,
   INSPECTING_MATERIALS,
@@ -72,8 +72,10 @@ import {
   getInspectionConclusionSummary,
   filterInspectionResultsByConclusion,
   filterDashboardMaterialsByKeyword,
+  sortDashboardMaterials,
 } from './data/iqcDashboard';
 import DashboardSearchBar from './components/DashboardSearchBar';
+import DashboardSortControl from './components/DashboardSortControl';
 
 const INITIAL_DISPATCH_LIST = [
   { id: 1, code: '8020080001', name: '高灵敏度霍尔传感器', mlot: 'MLOT202610-1', lpn: 'LPN001', supplierCode: '100021', supplierAbbr: '群创光电', batch: '20261020', qty: 5000, orderNo: 'W01110015', goodsNo: '0001805901', spot: '是', paperless: '否', wms: '是', failReason: '', dispatcher: '陈静', inspector: '李明', status: '已派单', remark: '加急件' },
@@ -611,15 +613,28 @@ export default function App() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [resultConclusionFilter, setResultConclusionFilter] = useState<InspectionConclusionFilter>('全部');
+  const [dashboardSortOrder, setDashboardSortOrder] = useState<DashboardMaterialSort>('默认');
   const resultConclusionSummary = getInspectionConclusionSummary(INSPECTION_RESULTS);
-  const filteredPendingMaterials = filterDashboardMaterialsByKeyword(PENDING_MATERIALS, searchTerm);
-  const filteredInspectingMaterials = filterDashboardMaterialsByKeyword(INSPECTING_MATERIALS, searchTerm);
-  const filteredInspectionResults = filterDashboardMaterialsByKeyword(
-    filterInspectionResultsByConclusion(INSPECTION_RESULTS, resultConclusionFilter),
-    searchTerm,
+  const filteredPendingMaterials = sortDashboardMaterials(
+    filterDashboardMaterialsByKeyword(PENDING_MATERIALS, searchTerm),
+    dashboardSortOrder,
   );
-  // 物料组分析视图不套用结论筛选，仅按关键词过滤
-  const filteredAnalysisResults = filterDashboardMaterialsByKeyword(INSPECTION_RESULTS, searchTerm);
+  const filteredInspectingMaterials = sortDashboardMaterials(
+    filterDashboardMaterialsByKeyword(INSPECTING_MATERIALS, searchTerm),
+    dashboardSortOrder,
+  );
+  const filteredInspectionResults = sortDashboardMaterials(
+    filterDashboardMaterialsByKeyword(
+      filterInspectionResultsByConclusion(INSPECTION_RESULTS, resultConclusionFilter),
+      searchTerm,
+    ),
+    dashboardSortOrder,
+  );
+  // 物料组分析视图不套用结论筛选，仅按关键词过滤，排序与看板一致
+  const filteredAnalysisResults = sortDashboardMaterials(
+    filterDashboardMaterialsByKeyword(INSPECTION_RESULTS, searchTerm),
+    dashboardSortOrder,
+  );
   const [selectedRow, setSelectedRow] = useState<any>(null);
   const [showNotificationModal, setShowNotificationModal] = useState(false);
   const [showAiModal, setShowAiModal] = useState(false);
@@ -4292,13 +4307,18 @@ export default function App() {
                 </div>
               </div>
 
-              {/* 清单关键词搜索：编码 / 名称 / 供应商 / 检验员 */}
-              <DashboardSearchBar
-                value={searchTerm}
-                onChange={setSearchTerm}
-                totalCount={PENDING_MATERIALS.length + INSPECTING_MATERIALS.length + INSPECTION_RESULTS.length}
-                matchedCount={filteredPendingMaterials.length + filteredInspectingMaterials.length + filteredInspectionResults.length}
-              />
+              {/* 清单关键词搜索与排序：编码 / 名称 / 供应商 / 检验员 */}
+              <div className="flex flex-col md:flex-row gap-3">
+                <div className="flex-1 min-w-0">
+                  <DashboardSearchBar
+                    value={searchTerm}
+                    onChange={setSearchTerm}
+                    totalCount={PENDING_MATERIALS.length + INSPECTING_MATERIALS.length + INSPECTION_RESULTS.length}
+                    matchedCount={filteredPendingMaterials.length + filteredInspectingMaterials.length + filteredInspectionResults.length}
+                  />
+                </div>
+                <DashboardSortControl value={dashboardSortOrder} onChange={setDashboardSortOrder} />
+              </div>
 
               {/* 3 Material Lists Section with Modern Table Styling */}
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

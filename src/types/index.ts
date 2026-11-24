@@ -36,3 +36,6 @@ export interface DefectItem {
 
 /** 检验结果结论筛选（含全部） */
 export type InspectionConclusionFilter = '全部' | InspectionConclusion;
+
+/** 看板清单排序方式：默认保持原顺序，批次最新按批次倒序，数量最多按数量倒序 */
+export type DashboardMaterialSort = '默认' | '批次最新' | '数量最多';

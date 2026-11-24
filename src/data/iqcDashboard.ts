@@ -6,6 +6,7 @@ import type {
   DefectItem,
   InspectionConclusion,
   InspectionConclusionFilter,
+  DashboardMaterialSort,
 } from '../types';
 
 /** 首页待检物料清单 */
@@ -131,4 +132,22 @@ export function filterDashboardMaterialsByKeyword<T extends DashboardMaterialBas
       .toLowerCase()
       .includes(term);
   });
+}
+
+/**
+ * 看板清单排序：默认保持原顺序；批次最新按批次倒序（批次为 YYYYMMDD，
+ * 字符串比较即时间倒序）；数量最多按数量倒序。返回新数组，不改动原列表。
+ */
+export function sortDashboardMaterials<T extends DashboardMaterialBase>(
+  items: T[],
+  sort: DashboardMaterialSort,
+): T[] {
+  if (sort === '默认') return items;
+  const sorted = [...items];
+  if (sort === '批次最新') {
+    sorted.sort((a, b) => b.batch.localeCompare(a.batch));
+  } else {
+    sorted.sort((a, b) => b.qty - a.qty);
+  }
+  return sorted;
 }
