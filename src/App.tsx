@@ -73,9 +73,11 @@ import {
   filterInspectionResultsByConclusion,
   filterDashboardMaterialsByKeyword,
   sortDashboardMaterials,
+  limitDashboardMaterials,
 } from './data/iqcDashboard';
 import DashboardSearchBar from './components/DashboardSearchBar';
 import DashboardSortControl from './components/DashboardSortControl';
+import DashboardListToggle from './components/DashboardListToggle';
 
 const INITIAL_DISPATCH_LIST = [
   { id: 1, code: '8020080001', name: '高灵敏度霍尔传感器', mlot: 'MLOT202610-1', lpn: 'LPN001', supplierCode: '100021', supplierAbbr: '群创光电', batch: '20261020', qty: 5000, orderNo: 'W01110015', goodsNo: '0001805901', spot: '是', paperless: '否', wms: '是', failReason: '', dispatcher: '陈静', inspector: '李明', status: '已派单', remark: '加急件' },
@@ -614,6 +616,7 @@ export default function App() {
   const [searchTerm, setSearchTerm] = useState('');
   const [resultConclusionFilter, setResultConclusionFilter] = useState<InspectionConclusionFilter>('全部');
   const [dashboardSortOrder, setDashboardSortOrder] = useState<DashboardMaterialSort>('默认');
+  const [dashboardListsExpanded, setDashboardListsExpanded] = useState(false);
   const resultConclusionSummary = getInspectionConclusionSummary(INSPECTION_RESULTS);
   const filteredPendingMaterials = sortDashboardMaterials(
     filterDashboardMaterialsByKeyword(PENDING_MATERIALS, searchTerm),
@@ -630,6 +633,10 @@ export default function App() {
     ),
     dashboardSortOrder,
   );
+  // 三张清单默认只显示前 5 条，展开状态共用
+  const visiblePendingMaterials = limitDashboardMaterials(filteredPendingMaterials, dashboardListsExpanded);
+  const visibleInspectingMaterials = limitDashboardMaterials(filteredInspectingMaterials, dashboardListsExpanded);
+  const visibleInspectionResults = limitDashboardMaterials(filteredInspectionResults, dashboardListsExpanded);
   // 物料组分析视图不套用结论筛选，仅按关键词过滤，排序与看板一致
   const filteredAnalysisResults = sortDashboardMaterials(
     filterDashboardMaterialsByKeyword(INSPECTION_RESULTS, searchTerm),
@@ -4328,6 +4335,7 @@ export default function App() {
                     <div className="flex items-center space-x-2">
                       <div className="w-2 h-5 bg-blue-600 rounded-full"></div>
                       <h3 className="font-bold text-slate-800 text-sm">待检物料清单</h3>
+                      <span className="text-[11px] font-medium text-slate-400">共 {filteredPendingMaterials.length} 条</span>
                     </div>
                   </div>
                   <div className="overflow-x-auto max-h-80 custom-scrollbar">
@@ -4341,7 +4349,7 @@ export default function App() {
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-100">
-                        {filteredPendingMaterials.map((item, idx) => (
+                        {visiblePendingMaterials.map((item, idx) => (
                           <tr
                             key={idx}
                             onClick={() => setSelectedRow({ type: '待检物料', ...item })}
@@ -4363,7 +4371,7 @@ export default function App() {
                             </td>
                           </tr>
                         ))}
-                        {filteredPendingMaterials.length === 0 && (
+                        {visiblePendingMaterials.length === 0 && (
                           <tr>
                             <td colSpan={4} className="py-8 px-3 text-center text-slate-400">
                               未找到匹配的待检物料
@@ -4373,6 +4381,12 @@ export default function App() {
                       </tbody>
                     </table>
                   </div>
+                  <DashboardListToggle
+                    totalCount={filteredPendingMaterials.length}
+                    expanded={dashboardListsExpanded}
+                    onToggle={() => setDashboardListsExpanded((v) => !v)}
+                    accent="blue"
+                  />
                 </div>
 
                 {/* 2. 检验中物料清单 */}
@@ -4381,6 +4395,7 @@ export default function App() {
                     <div className="flex items-center space-x-2">
                       <div className="w-2 h-5 bg-cyan-600 rounded-full"></div>
                       <h3 className="font-bold text-slate-800 text-sm">检验中物料清单</h3>
+                      <span className="text-[11px] font-medium text-slate-400">共 {filteredInspectingMaterials.length} 条</span>
                     </div>
                   </div>
                   <div className="overflow-x-auto max-h-80 custom-scrollbar">
@@ -4394,7 +4409,7 @@ export default function App() {
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-100">
-                        {filteredInspectingMaterials.map((item, idx) => (
+                        {visibleInspectingMaterials.map((item, idx) => (
                           <tr
                             key={idx}
                             onClick={() => setSelectedRow({ type: '检验中物料', ...item })}
@@ -4416,7 +4431,7 @@ export default function App() {
                             </td>
                           </tr>
                         ))}
-                        {filteredInspectingMaterials.length === 0 && (
+                        {visibleInspectingMaterials.length === 0 && (
                           <tr>
                             <td colSpan={4} className="py-8 px-3 text-center text-slate-400">
                               未找到匹配的检验中物料
@@ -4426,6 +4441,12 @@ export default function App() {
                       </tbody>
                     </table>
                   </div>
+                  <DashboardListToggle
+                    totalCount={filteredInspectingMaterials.length}
+                    expanded={dashboardListsExpanded}
+                    onToggle={() => setDashboardListsExpanded((v) => !v)}
+                    accent="cyan"
+                  />
                 </div>
 
                 {/* 3. 检验结果清单 */}
@@ -4434,6 +4455,7 @@ export default function App() {
                     <div className="flex items-center space-x-2">
                       <div className="w-2 h-5 bg-emerald-600 rounded-full"></div>
                       <h3 className="font-bold text-slate-800 text-sm">检验结果清单</h3>
+                      <span className="text-[11px] font-medium text-slate-400">共 {filteredInspectionResults.length} 条</span>
                     </div>
                     <div className="flex items-center space-x-1">
                       {(['全部', '合格', '让步接收', '退货'] as const).map((option) => (
@@ -4462,7 +4484,7 @@ export default function App() {
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-100">
-                        {filteredInspectionResults.map((item, idx) => (
+                        {visibleInspectionResults.map((item, idx) => (
                           <tr
                             key={idx}
                             onClick={() => setSelectedRow({ type: '检验结果', ...item })}
@@ -4492,7 +4514,7 @@ export default function App() {
                             </td>
                           </tr>
                         ))}
-                        {filteredInspectionResults.length === 0 && (
+                        {visibleInspectionResults.length === 0 && (
                           <tr>
                             <td colSpan={4} className="py-8 px-3 text-center text-slate-400">
                               {searchTerm.trim() ? '未找到匹配的检验结果' : '该结论下暂无检验结果'}
@@ -4502,6 +4524,12 @@ export default function App() {
                       </tbody>
                     </table>
                   </div>
+                  <DashboardListToggle
+                    totalCount={filteredInspectionResults.length}
+                    expanded={dashboardListsExpanded}
+                    onToggle={() => setDashboardListsExpanded((v) => !v)}
+                    accent="emerald"
+                  />
                 </div>
               </div>
             </div>

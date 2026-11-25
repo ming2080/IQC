@@ -39,3 +39,6 @@ export type InspectionConclusionFilter = '全部' | InspectionConclusion;
 
 /** 看板清单排序方式：默认保持原顺序，批次最新按批次倒序，数量最多按数量倒序 */
 export type DashboardMaterialSort = '默认' | '批次最新' | '数量最多';
+
+/** 看板清单卡片主题色：待检蓝、检验中青、检验结果绿 */
+export type DashboardListAccent = 'blue' | 'cyan' | 'emerald';

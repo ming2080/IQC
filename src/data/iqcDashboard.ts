@@ -151,3 +151,18 @@ export function sortDashboardMaterials<T extends DashboardMaterialBase>(
   }
   return sorted;
 }
+
+/** 首页看板清单默认显示条数，超过时卡片底部出现展开切换 */
+export const DASHBOARD_LIST_VISIBLE_COUNT = 5;
+
+/**
+ * 看板清单截取：收起时只取前 DASHBOARD_LIST_VISIBLE_COUNT 条，
+ * 展开时返回全部。返回新数组，不改动原列表。
+ */
+export function limitDashboardMaterials<T extends DashboardMaterialBase>(
+  items: T[],
+  expanded: boolean,
+): T[] {
+  if (expanded) return items;
+  return items.slice(0, DASHBOARD_LIST_VISIBLE_COUNT);
+}
