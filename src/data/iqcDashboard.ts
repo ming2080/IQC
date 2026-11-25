@@ -7,6 +7,7 @@ import type {
   InspectionConclusion,
   InspectionConclusionFilter,
   DashboardMaterialSort,
+  MyInspectionStatusFilter,
 } from '../types';
 
 /** 首页待检物料清单 */
@@ -154,6 +155,18 @@ export function sortDashboardMaterials<T extends DashboardMaterialBase>(
 
 /** 首页看板清单默认显示条数，超过时卡片底部出现展开切换 */
 export const DASHBOARD_LIST_VISIBLE_COUNT = 5;
+
+/**
+ * 按检验状态筛选我的检验任务，'全部' 返回原列表。
+ * 状态取值为 '待抽样' / '检验中'，与任务行的 status 字段一致。
+ */
+export function filterMyInspectionsByStatus<T extends { status: string }>(
+  items: T[],
+  filter: MyInspectionStatusFilter,
+): T[] {
+  if (filter === '全部') return items;
+  return items.filter((item) => item.status === filter);
+}
 
 /**
  * 看板清单截取：收起时只取前 DASHBOARD_LIST_VISIBLE_COUNT 条，

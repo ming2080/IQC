@@ -42,3 +42,9 @@ export type DashboardMaterialSort = '默认' | '批次最新' | '数量最多';
 
 /** 看板清单卡片主题色：待检蓝、检验中青、检验结果绿 */
 export type DashboardListAccent = 'blue' | 'cyan' | 'emerald';
+
+/** 我的检验任务状态 */
+export type MyInspectionStatus = '待抽样' | '检验中';
+
+/** 我的检验任务状态筛选（含全部） */
+export type MyInspectionStatusFilter = '全部' | MyInspectionStatus;

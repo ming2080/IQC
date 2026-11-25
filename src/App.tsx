@@ -59,7 +59,7 @@ import {
   Cell,
   ComposedChart
 } from 'recharts';
-import type { InspectionConclusionFilter, DashboardMaterialSort } from './types';
+import type { InspectionConclusionFilter, DashboardMaterialSort, MyInspectionStatusFilter } from './types';
 import {
   PENDING_MATERIALS,
   INSPECTING_MATERIALS,
@@ -72,12 +72,14 @@ import {
   getInspectionConclusionSummary,
   filterInspectionResultsByConclusion,
   filterDashboardMaterialsByKeyword,
+  filterMyInspectionsByStatus,
   sortDashboardMaterials,
   limitDashboardMaterials,
 } from './data/iqcDashboard';
 import DashboardSearchBar from './components/DashboardSearchBar';
 import DashboardSortControl from './components/DashboardSortControl';
 import DashboardListToggle from './components/DashboardListToggle';
+import MyInspectionStatusFilterControl from './components/MyInspectionStatusFilterControl';
 
 const INITIAL_DISPATCH_LIST = [
   { id: 1, code: '8020080001', name: '高灵敏度霍尔传感器', mlot: 'MLOT202610-1', lpn: 'LPN001', supplierCode: '100021', supplierAbbr: '群创光电', batch: '20261020', qty: 5000, orderNo: 'W01110015', goodsNo: '0001805901', spot: '是', paperless: '否', wms: '是', failReason: '', dispatcher: '陈静', inspector: '李明', status: '已派单', remark: '加急件' },
@@ -689,6 +691,7 @@ export default function App() {
   const [materialInspectionOpen, setMaterialInspectionOpen] = useState(false);
   const [inspectMaterialCode, setInspectMaterialCode] = useState('');
   const [inspectSupplierCode, setInspectSupplierCode] = useState('');
+  const [inspectStatusFilter, setInspectStatusFilter] = useState<MyInspectionStatusFilter>('全部');
   const [inspectList, setInspectList] = useState(INITIAL_MY_INSPECTION_LIST);
 
   // IQC Audit states
@@ -3181,18 +3184,31 @@ export default function App() {
     setWmsList(INITIAL_WMS_PENDING_LIST);
   };
 
-  const handleSearchInspect = () => {
-    let filtered = INITIAL_MY_INSPECTION_LIST.filter(item => {
-      const matchCode = inspectMaterialCode ? item.code.includes(inspectMaterialCode) : true;
-      const matchSupplier = inspectSupplierCode ? item.supplierCode.includes(inspectSupplierCode) : true;
+  /** 我的检验筛选：状态筛选与物料编码、供方代码组合生效 */
+  const filterInspectList = (code: string, supplier: string, status: MyInspectionStatusFilter) => {
+    const byStatus = filterMyInspectionsByStatus(INITIAL_MY_INSPECTION_LIST, status);
+    const filtered = byStatus.filter(item => {
+      const matchCode = code ? item.code.includes(code) : true;
+      const matchSupplier = supplier ? item.supplierCode.includes(supplier) : true;
       return matchCode && matchSupplier;
     });
     setInspectList(filtered);
   };
 
+  const handleSearchInspect = () => {
+    filterInspectList(inspectMaterialCode, inspectSupplierCode, inspectStatusFilter);
+  };
+
+  /** 状态按钮切换后立即重新筛选，不用再点查询 */
+  const handleInspectStatusChange = (status: MyInspectionStatusFilter) => {
+    setInspectStatusFilter(status);
+    filterInspectList(inspectMaterialCode, inspectSupplierCode, status);
+  };
+
   const handleResetInspect = () => {
     setInspectMaterialCode('');
     setInspectSupplierCode('');
+    setInspectStatusFilter('全部');
     setInspectList(INITIAL_MY_INSPECTION_LIST);
   };
 
@@ -7141,6 +7157,16 @@ export default function App() {
                   />
                 </div>
 
+                <MyInspectionStatusFilterControl
+                  value={inspectStatusFilter}
+                  onChange={handleInspectStatusChange}
+                  counts={{
+                    '全部': INITIAL_MY_INSPECTION_LIST.length,
+                    '待抽样': INITIAL_MY_INSPECTION_LIST.filter(item => item.status === '待抽样').length,
+                    '检验中': INITIAL_MY_INSPECTION_LIST.filter(item => item.status === '检验中').length,
+                  }}
+                />
+
                 <div className="flex items-center space-x-2 ml-auto">
                   <button
                     onClick={handleSearchInspect}
@@ -7222,12 +7248,17 @@ export default function App() {
                           <td className="p-3 text-slate-400">{item.rejectReason || '-'}</td>
                         </tr>
                       ))}
+                      {inspectList.length === 0 && (
+                        <tr>
+                          <td colSpan={17} className="p-6 text-center text-slate-400">没有符合条件的检验任务</td>
+                        </tr>
+                      )}
                     </tbody>
                   </table>
                 </div>
 
                 <div className="flex flex-wrap items-center justify-between pt-2 text-xs text-slate-500">
-                  <span>共 200 条记录 第 1 / 60 页</span>
+                  <span>共 {inspectList.length} 条记录</span>
                   <div className="flex items-center space-x-1">
                     <button className="px-3 py-1 bg-indigo-600 text-white rounded font-medium">1</button>
                     <button className="px-3 py-1 bg-slate-100 hover:bg-slate-200 rounded">2</button>
